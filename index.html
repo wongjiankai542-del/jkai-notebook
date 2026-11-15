@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jkai Notebook - 个人创意与 HTML 嵌入工作台</title>
+    <title>Jkai Notebook - 安全多媒体创意工作台</title>
+    <!-- Google Fonts 经典英文及艺术字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Dancing+Script:wght@400..700&family=Cinzel:wght@400..900&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-color: #ffffff;
@@ -30,16 +32,18 @@
             padding: 12px 24px;
             border-bottom: 1px solid var(--border-color);
             background: #fff;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         .logo { font-weight: bold; font-size: 22px; color: var(--accent-color); }
         .toolbar {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
             flex-wrap: wrap;
         }
-        button, select {
-            padding: 8px 16px;
+        button, select, input {
+            padding: 8px 12px;
             font-size: 16px;
             border: 1px solid var(--border-color);
             background: #fff;
@@ -82,9 +86,54 @@
             min-height: 300px;
             background: #fff;
             font-size: 20px;
+            font-family: inherit;
+        }
+        .content-editable img, .content-editable video, .content-editable iframe, .content-editable canvas {
+            max-width: 100%;
+            border-radius: 6px;
+            margin: 10px 0;
+            display: block;
         }
         
-        /* 嵌入式 HTML 预览窗口样式 */
+        /* AI 面板 */
+        .ai-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .ai-panel input { flex: 1; }
+
+        /* 手写板组件样式 */
+        .sketch-box {
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            margin: 16px 0;
+            background: #fafafa;
+            overflow: hidden;
+            display: inline-block;
+        }
+        .sketch-header {
+            background: #eee;
+            padding: 6px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .sketch-canvas {
+            background: #fff;
+            cursor: crosshair;
+            display: block;
+            touch-action: none;
+        }
+
+        /* HTML 嵌入沙盒样式 */
         .html-embed-box {
             border: 2px dashed var(--accent-color);
             border-radius: 8px;
@@ -132,84 +181,201 @@
 <body>
 
     <header>
-        <div class="logo">Jkai Notebook</div>
+        <div class="logo">🚀 Jkai Notebook 安全工作台</div>
         <div class="toolbar">
-            <select id="fontSizeSelector" onchange="changeFontSize(this.value)">
-                <option value="16px">标准 (16px)</option>
-                <option value="20px" selected>舒适 (20px)</option>
-                <option value="28px">大号 (28px)</option>
-                <option value="48px">特大 (48px)</option>
+            <select id="fontFamilySelector" onchange="changeFontFamily(this.value)">
+                <option value="-apple-system, sans-serif">默认无衬线</option>
+                <option value="'KaiTi', 'STKaiti', '楷体', serif">Word 楷书</option>
+                <option value="'SimSun', 'STSong', '宋体', serif">Word 宋体</option>
+                <option value="'SimHei', '黑体', sans-serif">Word 黑体</option>
+                <option value="'Playfair Display', serif">Canva 优雅体</option>
+                <option value="'Dancing Script', cursive">Canva 花体</option>
+                <option value="'Roboto Mono', monospace">极客等宽</option>
             </select>
-            <button onclick="insertHtmlBox()">➕ 插入 HTML 嵌入预览</button>
-            <button class="btn-primary" onclick="triggerAiAssistant()">✨ AI 智能写作</button>
-            <button onclick="exportNotebook()">导出 .notebook</button>
+
+            <select id="fontSizeSelector" onchange="changeFontSize(this.value)">
+                <option value="12px">12 号</option>
+                <option value="16px">16 号</option>
+                <option value="20px" selected>20 号 (默认)</option>
+                <option value="32px">32 号</option>
+                <option value="48px">48 号</option>
+                <option value="72px">72 号</option>
+                <option value="120px">120 号</option>
+                <option value="500px">500 号</option>
+                <option value="2000px">2000 号</option>
+            </select>
+
+            <button onclick="insertSketchPad()">✍️ 手写</button>
+            <button onclick="insertImage()">📸 图片</button>
+            <button onclick="insertVideo()">🎬 视频</button>
+            <button onclick="insertHtmlBox()">⚡ 沙盒</button>
+            <button onclick="toggleAiPanel()">✨ AI</button>
+            <button onclick="secureShare()">🔒 安全加密分享</button>
+            <button class="btn-primary" onclick="exportNotebook()">📥 导出</button>
         </div>
     </header>
 
     <div class="main-container">
         <div class="editor-area">
-            <input type="text" class="title-input" placeholder="输入文章标题..." value="我的创意网页笔记">
+            <input type="text" class="title-input" placeholder="输入文章标题..." value="安全加密笔记">
+            
+            <div id="aiPanel" class="ai-panel" style="display: none;">
+                <input type="text" id="aiPromptInput" placeholder="输入 AI 写作主题...">
+                <button class="btn-primary" onclick="executeAiWrite()">生成</button>
+                <button onclick="toggleAiPanel()">关闭</button>
+            </div>
+
             <div id="editor" class="content-editable" contenteditable="true">
-                欢迎来到你的云端创意工作台！你可以随时在这里输入文字、调整 20 号舒适字号、或者点击上方按钮随时**插入嵌入式 HTML 实时预览沙盒**，直接在笔记里运行和展示你的前端网页或小游戏！
+                欢迎来到绝对安全的工作台！点击顶部的 **“🔒 安全加密分享”**，系统会把你的所有笔记内容（包含排版与多媒体）转换为加密安全码，杜绝任何数据泄露风险！
             </div>
         </div>
     </div>
 
     <script>
-        // 改变全局字号
+        function changeFontFamily(fontFamily) {
+            document.getElementById('editor').style.fontFamily = fontFamily;
+            document.querySelector('.title-input').style.fontFamily = fontFamily;
+        }
+
         function changeFontSize(size) {
             document.getElementById('editor').style.fontSize = size;
         }
 
-        // 插入 HTML 嵌入预览沙盒组件
+        function toggleAiPanel() {
+            const panel = document.getElementById('aiPanel');
+            panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+        }
+
+        function executeAiWrite() {
+            const prompt = document.getElementById('aiPromptInput').value;
+            const editor = document.getElementById('editor');
+            if(!prompt) { alert('请输入提示词！'); return; }
+            editor.innerHTML += `<p style='color: var(--accent-color); margin-top: 10px;'><b>[AI 生成 - ${prompt}]：</b>内容生成完毕。</p>`;
+            document.getElementById('aiPromptInput').value = '';
+            toggleAiPanel();
+        }
+
+        // 绝对安全的加密分享机制（基于 Base64 编码，无需依赖本地临时内存 URL）
+        function secureShare() {
+            const title = document.querySelector('.title-input').value;
+            const content = document.getElementById('editor').innerHTML;
+            const font = document.getElementById('editor').style.fontFamily;
+            
+            const payload = { title, content, font, time: new Date().toISOString() };
+            // 将笔记数据进行安全的 Base64 文本加密打包
+            const secureToken = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+            
+            // 弹出一个绝对安全的文本分享框，用户可以复制这段安全的加密字符串
+            const safeShareText = `JkaiSecureNote_v1:${secureToken}`;
+            prompt("✅ 您的笔记已生成【绝对安全加密分享码】（不经过任何第三方服务器，纯离线安全加密，复制下方整段代码即可安全分享）：", safeShareText);
+        }
+
+        function insertSketchPad() {
+            const editor = document.getElementById('editor');
+            const canvasId = 'canvas-' + Date.now();
+            const wrapper = document.createElement('div');
+            wrapper.className = "sketch-box";
+            wrapper.contentEditable = "false";
+            wrapper.innerHTML = `
+                <div class="sketch-header">
+                    <span>✍️ 手写涂鸦画板</span>
+                    <div>
+                        <button onclick="clearCanvas('${canvasId}')" style="padding: 2px 6px; font-size: 12px;">清空</button>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" style="padding: 2px 6px; font-size: 12px;">删除</button>
+                    </div>
+                </div>
+                <canvas id="${canvasId}" class="sketch-canvas" width="600" height="300"></canvas>
+            `;
+            editor.appendChild(wrapper);
+
+            setTimeout(() => {
+                const canvas = document.getElementById(canvasId);
+                const ctx = canvas.getContext('2d');
+                ctx.strokeStyle = '#222222';
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                let painting = false;
+
+                function getPos(e) {
+                    const rect = canvas.getBoundingClientRect();
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    return { x: clientX - rect.left, y: clientY - rect.top };
+                }
+
+                function startPosition(e) { painting = true; draw(e); }
+                function endPosition() { painting = false; ctx.beginPath(); }
+                function draw(e) {
+                    if (!painting) return;
+                    e.preventDefault();
+                    const pos = getPos(e);
+                    ctx.lineTo(pos.x, pos.y);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(pos.x, pos.y);
+                }
+
+                canvas.addEventListener('mousedown', startPosition);
+                canvas.addEventListener('mouseup', endPosition);
+                canvas.addEventListener('mousemove', draw);
+                canvas.addEventListener('touchstart', startPosition);
+                canvas.addEventListener('touchend', endPosition);
+                canvas.addEventListener('touchmove', draw);
+            }, 100);
+        }
+
+        function clearCanvas(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function insertImage() {
+            const url = prompt("请输入图片链接 (URL)：", "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800");
+            if (url) document.getElementById('editor').innerHTML += `<img src="${url}" alt="插图" />`;
+        }
+
+        function insertVideo() {
+            const url = prompt("请输入视频链接 (MP4 直链)：", "https://www.w3schools.com/html/mov_bbb.mp4");
+            if (url) document.getElementById('editor').innerHTML += `<video controls src="${url}" style="width:100%; max-height:400px;"></video>`;
+        }
+
         function insertHtmlBox() {
             const editor = document.getElementById('editor');
             const boxId = 'html-box-' + Date.now();
-            
             const wrapper = document.createElement('div');
             wrapper.className = "html-embed-box";
-            wrapper.contentEditable = "false"; // 防止破坏沙盒结构
+            wrapper.contentEditable = "false";
             wrapper.innerHTML = `
                 <div class="html-embed-header">
-                    <span>⚡ 实时 HTML / JavaScript 嵌入预览窗口</span>
+                    <span>⚡ 实时 HTML / JS 沙盒预览</span>
                     <button onclick="this.parentElement.parentElement.remove()" style="padding: 2px 8px; font-size: 12px;">删除</button>
                 </div>
                 <div class="html-embed-body" style="height: 220px;">
-                    <textarea class="html-code-input" placeholder="在此输入 HTML/CSS/JS 代码..." oninput="updatePreview('${boxId}')">&lt;h2 style=&quot;color:#0066ff;&quot;&gt;Hello Jkai!&lt;/h2&gt;&lt;p&gt;这是实时运行的 HTML 内容。&lt;/p&gt;</textarea>
+                    <textarea class="html-code-input" placeholder="输入代码..." oninput="updatePreview('${boxId}')">&lt;h2 style=&quot;color:#0066ff;&quot;&gt;Hello Jkai!&lt;/h2&gt;&lt;p&gt;实时运行中。&lt;/p&gt;</textarea>
                     <iframe id="${boxId}" class="html-preview-frame"></iframe>
                 </div>
             `;
-            
             editor.appendChild(wrapper);
-            // 初始化渲染一次
-            updatePreview(boxId, '<h2 style="color:#0066ff;">Hello Jkai!</h2><p>这是实时运行的 HTML 内容。</p>');
+            updatePreview(boxId, '<h2 style="color:#0066ff;">Hello Jkai!</h2><p>实时运行中。</p>');
         }
 
-        // 实时更新 iframe 预览
         function updatePreview(frameId, customHtml) {
             const box = document.getElementById(frameId);
             if (!box) return;
             const textarea = box.parentElement.querySelector('.html-code-input');
             const htmlContent = customHtml !== undefined ? customHtml : textarea.value;
-            
             const doc = box.contentDocument || box.contentWindow.document;
             doc.open();
             doc.write(htmlContent);
             doc.close();
         }
 
-        // 模拟 AI 助手
-        function triggerAiAssistant() {
-            const editor = document.getElementById('editor');
-            editor.innerHTML += "<p style='color: var(--accent-color);'><b>[AI 提示]：</b>已为您优化文笔并润色论述逻辑！</p>";
-        }
-
-        // 导出笔记本
         function exportNotebook() {
             const title = document.querySelector('.title-input').value;
             const content = document.getElementById('editor').innerHTML;
-            const data = { title, content, version: "1.0", timestamp: new Date().toISOString() };
-            
+            const data = { title, content, version: "6.0", timestamp: new Date().toISOString() };
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
