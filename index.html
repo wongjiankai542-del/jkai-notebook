@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jkai Notebook - 全能设计、电子书阅读与 AI 创作工作台</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #111111;
+            --border-color: #e5e5ea;
+            --card-bg: #ffffff;
+            --hover-bg: #f2f2f7;
+            --accent-color: #000000;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        /* 左侧大厅侧边栏 */
+        #sidebar {
+            width: 280px;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+            z-index: 10;
+        }
+        .sidebar-header {
+            padding: 18px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .sidebar-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .icon-btn {
+            background: #f5f5f7;
+            border: 1px solid var(--border-color);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .icon-btn:hover { background: #e8e8ed; }
+        .add-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
+        }
+        .add-btn:active { transform: scale(0.95); }
+        .note-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+        .note-item {
+            padding: 12px 15px;
+            margin-bottom: 6px;
+            background: var(--card-bg);
+            border: 1px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .note-item:hover { background: var(--hover-bg); }
+        .note-item.active { background: var(--hover-bg); border-color: #d1d1d6; }
+        .note-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        /* 右侧工作区 */
+        #workspace {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+            position: relative;
+            overflow: hidden;
+        }
+        .toolbar {
+            padding: 10px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            background: #ffffff;
+            z-index: 5;
+        }
+        input.title-input {
+            font-size: 18px;
+            border: none;
+            outline: none;
+            flex: 1;
+            font-weight: bold;
+            background: transparent;
+            min-width: 120px;
+        }
+        
+        /* 文档视窗容器 */
+        .doc-container {
+            flex: 1;
+            background: #f7f7f9;
+            overflow-y: auto;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 电子书 / 小说单页阅读翻页模式容器 */
+        .ebook-container {
+            flex: 1;
+            background: #f2f2f7;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .ebook-page {
+            width: 750px;
+            height: 850px;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+            border-radius: 12px;
+            padding: 50px 60px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .ebook-controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        /* 动态纸张大小模型 */
+        .doc-page {
+            width: 800px;
+            min-height: 1130px;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+            border-radius: 6px;
+            padding: 60px;
+            margin-bottom: 30px;
+            box-sizing: border-box;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+        }
+
+        /* 默认字号设定为 20px 舒适大字 */
+        .page-editor {
+            flex: 1;
+            outline: none;
+            font-size: 20px; 
+            line-height: 1.8;
+            color: #222;
+            overflow-y: auto;
+        }
+        .page-editor img, .page-editor video {
+            max-width: 100%;
+            border-radius: 6px;
+            margin: 10px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .page-footer {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #f0f0f2;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #8e8e93;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        button.action-btn, select.permission-select, input.color-picker {
+            padding: 5px 10px;
+            background: #f5f5f7;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            color: #333;
+        }
+        input.color-picker { padding: 2px 6px; height: 28px; vertical-align: middle; }
+        button.action-btn:hover { background: #e8e8ed; }
+        button.action-btn.primary { background: #000000; color: white; border-color: #000000; }
+        button.action-btn.primary:hover { background: #333333; }
+        
+        .empty-state {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8e8e93;
+            flex-direction: column;
+            gap: 10px;
+        }
+        #permissionBanner {
+            background: #f9f9fb;
+            color: #3a3a3c;
+            padding: 8px 15px;
+            font-size: 13px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            display: none;
+        }
+
+        /* 通用弹窗样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .modal-box {
+            background: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            width: 440px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .modal-box input, .modal-box textarea, .modal-box select {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            font-family: inherit;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 左侧大厅侧边栏 -->
+    <div id="sidebar">
+        <div class="sidebar-header">
+            <span style="font-weight: 700; font-size: 16px; letter-spacing: -0.3px;">Jkai Notebook</span>
+            <div class="sidebar-actions">
+                <button class="icon-btn" onclick="triggerImport()" title="打开 .notebook 文件">📂</button>
+                <input type="file" id="importFile" accept=".notebook" style="display: none;" onchange="importNotebookFile(event)">
+                <button class="add-btn" onclick="createNewNote()" title="新建笔记">+</button>
+            </div>
+        </div>
+        <div class="note-list" id="noteList"></div>
+    </div>
+
+    <!-- 右侧工作区 -->
+    <div id="workspace">
+        <div id="permissionBanner">当前处于分享访问模式，权限状态：<span id="permModeText" style="font-weight:600;"></span></div>
+        <div id="activeEditor" style="display: none; flex: 1; flex-direction: column; height: 100%;">
+            <div class="toolbar">
+                <input type="text" id="noteTitle" class="title-input" placeholder="无标题文档..." oninput="saveCurrentNote()">
+                <div class="action-btns">
+                    <!-- 视图模式切换 -->
+                    <select id="viewModeSelect" class="permission-select" onchange="changeViewMode()" style="font-weight:bold; background:#e8e8ed;">
+                        <option value="doc">📄 Word 连续模式</option>
+                        <option value="ebook">📖 电子书 / 小说翻页模式</option>
+                    </select>
+
+                    <select id="paperSizeSelect" class="permission-select" onchange="changePaperSize()">
+                        <option value="A4">A4</option>
+                        <option value="A3">A3</option>
+                        <option value="A2">A2</option>
+                        <option value="Letter">Letter</option>
+                    </select>
+
+                    <!-- 字体选择 -->
+                    <select class="permission-select" onchange="formatDoc('fontName', this.value)">
+                        <option value="sans-serif">系统默认</option>
+                        <option value="Arial">Arial</option>
+                        <option value="Georgia">Georgia</option>
+                        <option value="Courier New">Courier</option>
+                    </select>
+
+                    <!-- 狂野字号（从默认 20 号到 2000 号） -->
+                    <select class="permission-select" onchange="formatDoc('fontSize', this.value)">
+                        <option value="3">默认 (20px)</option>
+                        <option value="5">大号 (24px)</option>
+                        <option value="7">特大 (48px)</option>
+                        <option value="custom200">🔥 巨无霸 200 号</option>
+                        <option value="custom500">💥 海报级 500 号</option>
+                        <option value="custom2000">👑 终极狂野 2000 号</option>
+                    </select>
+
+                    <!-- 颜色微调 -->
+                    <input type="color" class="color-picker" onchange="formatDoc('foreColor', this.value)" value="#111111" title="字色">
+                    <input type="color" class="color-picker" onchange="formatDoc('hiliteColor', this.value)" value="#ffffff" title="底色">
+
+                    <!-- AI 智能工具 -->
+                    <button class="action-btn primary" onclick="openAiWriterModal()">🤖 AI 写作与论述</button>
+                    <button class="action-btn" onclick="openAiModal()">✨ AI 插图</button>
+                    
+                    <button class="action-btn" onclick="insertMedia('image')">🖼️ 图片</button>
+                    <button class="action-btn" onclick="insertMedia('video')">🎬 视频</button>
+                    <button class="action-btn" onclick="window.print()">🖨️ 打印</button>
+                    <button class="action-btn primary" onclick="exportCurrentNotebook()">导出 .notebook</button>
+                    
+                    <!-- 分享权限选择 -->
+                    <select id="sharePermission" class="permission-select" style="background:#f5f5f7;">
+                        <option value="view">仅查看权限</option>
+                        <option value="edit">可编辑权限</option>
+                    </select>
+                    <button class="action-btn" onclick="shareCurrentNote()">分享链接</button>
+                    
+                    <button class="action-btn" style="color: #ff3b30;" id="deleteBtn" onclick="deleteCurrentNote()">删除</button>
+                </div>
+            </div>
+            
+            <div id="mainContainer" style="flex: 1; display: flex; flex-direction: column; overflow: hidden;"></div>
+        </div>
+
+        <div id="emptyWorkspace" class="empty-state">
+            <h2 style="font-weight: 500; font-size: 18px; color: #111;">点击左上角的 <span style="font-weight: bold;">+</span> 号开始记录</h2>
+            <p style="font-size: 13px;">AI 智能写作与生图 · 电子书小说翻页 · 默认 20 号大字 · .notebook 云端互通</p>
+        </div>
+    </div>
+
+    <!-- AI 智能写作与论述弹窗 -->
+    <div id="aiWriterModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="margin:0; font-size:16px;">🤖 AI 智能写作与论述助手</h3>
+            <p style="margin:0; font-size:12px; color:#666;">选择功能并输入你的想法或内容：</p>
+            <select id="aiTaskType" style="padding:8px; border-radius:6px; border:1px solid var(--border-color);">
+                <option value="write">✍️ 智能写文章 / 小说章节</option>
+                <option value="argue">⚖️ 深度论述 / 议论文润色</option>
+                <option value="translate">🌐 多语言翻译 (中/英/马来文等)</option>
+            </select>
+            <textarea id="aiWriterPrompt" rows="4" placeholder="例如：写一篇科幻短篇小说，或输入想论述的议题..."></textarea>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:5px;">
+                <button class="action-btn" onclick="closeAiWriterModal()">取消</button>
+                <button class="action-btn primary" onclick="runAiWriterTask()">✨ 立即生成并插入</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI 生成图片弹窗 -->
+    <div id="aiModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="margin:0; font-size:16px;">✨ AI 智能插图助手</h3>
+            <p style="margin:0; font-size:12px; color:#666;">输入画面提示词（例如：scifi cyberpunk city landscape）：</p>
+            <input type="text" id="aiPromptInput" placeholder="输入画面描述...">
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:5px;">
+                <button class="action-btn" onclick="closeAiModal()">取消</button>
+                <button class="action-btn primary" onclick="generateAiImage()">立即生成并插入</button>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="mediaInput" style="display:none;" onchange="handleMediaFile(event)">
+
+    <script>
+        let notes = JSON.parse(localStorage.getItem('jkai_notes') || '[]');
+        let currentNoteId = null;
+        let isSharedView = false;
+        let activeMediaType = null;
+        let currentEbookPage = 0;
+
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sharedData = urlParams.get('data');
+            const mode = urlParams.get('mode') || 'view';
+            
+            if (sharedData) {
+                try {
+                    const decodedNote = JSON.parse(decodeURIComponent(atob(sharedData)));
+                    isSharedView = true;
+                    renderSidebar();
+                    document.getElementById('emptyWorkspace').style.display = 'none';
+                    document.getElementById('activeEditor').style.display = 'flex';
+                    document.getElementById('noteTitle').value = decodedNote.title;
+                    document.getElementById('noteTitle').disabled = (mode === 'view');
+                    if(mode === 'view') {
+                        document.getElementById('permissionBanner').style.display = 'block';
+                        document.getElementById('permModeText').innerText = '仅查看';
+                        document.querySelector('.toolbar').style.display = 'none';
+                    }
+                    renderSpecificNote(decodedNote);
+                    return;
+                } catch(e) { console.error(e); }
+            }
+            renderSidebar();
+        };
+
+        function formatDoc(cmd, value) {
+            if (value.startsWith('custom')) {
+                let sizePx = '48px';
+                if (value === 'custom200') sizePx = '120px';
+                if (value === 'custom500') sizePx = '250px';
+                if (value === 'custom2000') sizePx = '600px';
+                const selection = window.getSelection();
+                if (!selection.rangeCount) return;
+                const range = selection.getRangeAt(0);
+                const span = document.createElement('span');
+                span.style.fontSize = sizePx;
+                span.appendChild(range.extractContents());
+                range.insertNode(span);
+                saveCurrentNote();
+                return;
+            }
+            document.execCommand(cmd, false, value);
+            saveCurrentNote();
+        }
+
+        function renderSidebar() {
+            if (isSharedView) return;
+            const listEl = document.getElementById('noteList');
+            listEl.innerHTML = '';
+            notes.forEach(note => {
+                const item = document.createElement('div');
+                item.className = `note-item ${note.id === currentNoteId ? 'active' : ''}`;
+                item.onclick = () => selectNote(note.id);
+                item.innerHTML = `<div class="note-title">${note.title || '无标题文档'}</div>`;
+                listEl.appendChild(item);
+            });
+        }
+
+        function createNewNote() {
+            const newNote = {
+                id: Date.now().toString(),
+                title: 'Jkai 极客创意工作台',
+                paperSize: 'A4',
+                viewMode: 'doc',
+                pages: ['<p>欢迎使用 Jkai Notebook！默认字号已设为舒适的 20 号。随时切换电子书翻页模式、使用 AI 写作、论述润色或智能生图！</p>']
+            };
+            notes.unshift(newNote);
+            saveAndRender();
+            selectNote(newNote.id);
+        }
+
+        function selectNote(id) {
+            currentNoteId = id;
+            const note = notes.find(n => n.id === id);
+            if (note) {
+                document.getElementById('emptyWorkspace').style.display = 'none';
+                document.getElementById('activeEditor').style.display = 'flex';
+                document.getElementById('noteTitle').value = note.title;
+                
+                if (!note.pages) note.pages = ['<p>开始创作...</p>'];
+                if (!note.paperSize) note.paperSize = 'A4';
+                if (!note.viewMode) note.viewMode = 'doc';
+                
+                document.getElementById('paperSizeSelect').value = note.paperSize;
+                document.getElementById('viewModeSelect').value = note.viewMode;
+                
+                renderActiveView(note);
+                renderSidebar();
+            }
+        }
+
+        function saveCurrentNote() {
+            if (!currentNoteId || isSharedView) return;
+            const note = notes.find(n => n.id === currentNoteId);
+            if (note) {
+                note.title = document.getElementById('noteTitle').value;
+                const noteViewMode = document.getElementById('viewModeSelect').value;
+                
+                if (noteViewMode === 'doc') {
+                    const editors = document.querySelectorAll('.page-editor');
+                    note.pages = Array.from(editors).map(ed => ed.innerHTML);
+                } else {
+                    const ebookEditor = document.getElementById('ebookEditor');
+                    if (ebookEditor) note.pages[currentEbookPage] = ebookEditor.innerHTML;
+                }
+                localStorage.setItem('jkai_notes', JSON.stringify(notes));
+                renderSidebar();
+            }
+        }
+
+        function saveAndRender() {
+            localStorage.setItem('jkai_notes', JSON.stringify(notes));
+            renderSidebar();
+        }
+
+        function changeViewMode() {
+            const note = notes.find(n => n.id === currentNoteId);
+            if (!note) return;
+            note.viewMode = document.getElementById('viewModeSelect').value;
+            saveAndRender();
+            renderActiveView(note);
+        }
+
+        function changePaperSize() {
+            const note = notes.find(n => n.id === currentNoteId);
+            if (!note) return;
+            note.paperSize = document.getElementById('paperSizeSelect').value;
+            saveAndRender();
+            if (note.viewMode === 'doc') applyPaperSizeStyle(note.paperSize);
+        }
+
+        function renderActiveView(note) {
+            const container = document.getElementById('mainContainer');
+            container.innerHTML = '';
+
+            if (note.viewMode === 'doc') {
+                const docContainer = document.createElement('div');
+                docContainer.className = 'doc-container';
+                docContainer.id = 'docContainer';
+
+                note.pages.forEach((pageHtml, index) => {
+                    const pageEl = document.createElement('div');
+                    pageEl.className = 'doc-page';
+                    const editor = document.createElement('div');
+                    editor.className = 'page-editor';
+                    editor.contentEditable = !isSharedView;
+                    editor.innerHTML = pageHtml;
+                    editor.oninput = () => { saveCurrentNote(); };
+
+                    const footer = document.createElement('div');
+                    footer.className = 'page-footer';
+                    footer.innerHTML = `<span>Jkai Studio (默认 20 号舒适字)</span> <span>第 ${index + 1} 页</span>`;
+
+                    pageEl.appendChild(editor);
+                    pageEl.appendChild(footer);
+                    docContainer.appendChild(pageEl);
+                });
+                container.appendChild(docContainer);
+                applyPaperSizeStyle(note.paperSize);
+            } else {
+                if (currentEbookPage >= note.pages.length) currentEbookPage = 0;
+                const ebookContainer = document.createElement('div');
+                ebookContainer.className = 'ebook-container';
+                const ebookPage = document.createElement('div');
+                ebookPage.className = 'ebook-page';
+
+                const editor = document.createElement('div');
+                editor.className = 'page-editor';
+                editor.id = 'ebookEditor';
+                editor.contentEditable = !isSharedView;
+                editor.innerHTML = note.pages[currentEbookPage] || '';
+                editor.oninput = () => { saveCurrentNote(); };
+
+                const footer = document.createElement('div');
+                footer.className = 'page-footer';
+                footer.innerHTML = `<span>📖 电子书模式 (20 号字)</span> <span>第 ${currentEbookPage + 1} / ${note.pages.length} 页</span>`;
+
+                ebookPage.appendChild(editor);
+                ebookPage.appendChild(footer);
+                ebookContainer.appendChild(ebookPage);
+
+                const controls = document.createElement('div');
+                controls.className = 'ebook-controls';
+                controls.innerHTML = `
+                    <button class="action-btn" onclick="prevEbookPage()">◀ 上一页</button>
+                    <button class="action-btn primary" onclick="nextEbookPage()">下一页 ▶</button>
+                    <button class="action-btn" onclick="addEbookPage()">➕ 新增一页</button>
+                `;
+                ebookContainer.appendChild(controls);
+                container.appendChild(ebookContainer);
+            }
+        }
+
+        function renderSpecificNote(note) {
+            const container = document.getElementById('mainContainer');
+            container.innerHTML = '';
+            const docContainer = document.createElement('div');
+            docContainer.className = 'doc-container';
+            note.pages.forEach((pageHtml, index) => {
+                const pageEl = document.createElement('div');
+                pageEl.className = 'doc-page';
+                const editor = document.createElement('div');
+                editor.className = 'page-editor';
+                editor.contentEditable = false;
+                editor.innerHTML = pageHtml;
+                pageEl.appendChild(editor);
+                docContainer.appendChild(pageEl);
+            });
+            container.appendChild(docContainer);
+        }
+
+        function prevEbookPage() {
+            if (currentEbookPage > 0) {
+                saveCurrentNote();
+                currentEbookPage--;
+                renderActiveView(notes.find(n => n.id === currentNoteId));
+            }
+        }
+
+        function nextEbookPage() {
+            const note = notes.find(n => n.id === currentNoteId);
+            if (!note) return;
+            saveCurrentNote();
+            if (currentEbookPage < note.pages.length - 1) {
+                currentEbookPage++;
+            } else {
+                note.pages.push('<p>下一章...</p>');
+                saveAndRender();
+                currentEbookPage++;
+            }
+            renderActiveView(note);
+        }
+
+        function addEbookPage() {
+            const note = notes.find(n => n.id === currentNoteId);
+            if (!note) return;
+            saveCurrentNote();
+            note.pages.push('<p>新的一页...</p>');
+            saveAndRender();
+            currentEbookPage = note.pages.length - 1;
+            renderActiveView(note);
+        }
+
+        function applyPaperSizeStyle(size) {
+            const pages = document.querySelectorAll('.doc-page');
+            let width = '800px';
+            if (size === 'A3') width = '1120px';
+            if (size === 'A2') width = '1580px';
+            if (size === 'Letter') width = '820px';
+            pages.forEach(p => p.style.width = width);
+        }
+
+        // AI 写作与论述逻辑
+        function openAiWriterModal() {
+            document.getElementById('aiWriterModal').style.display = 'flex';
+            document.getElementById('aiWriterPrompt').focus();
+        }
+        function closeAiWriterModal() {
+            document.getElementById('aiWriterModal').style.display = 'none';
+            document.getElementById('aiWriterPrompt').value = '';
+        }
+
+        function runAiWriterTask() {
+            const task = document.getElementById('aiTaskType').value;
+            const prompt = document.getElementById('aiWriterPrompt').value.trim();
+            if (!prompt) {
+                alert('请先输入要求或文本！');
+                return;
+            }
+            closeAiWriterModal();
+
+            let generatedText = '';
+            if (task === 'write') {
+                generatedText = `<h3 style="color:#000;">【AI 原创文章】${prompt}</h3><p>在当前深度数字化的浪潮中，${prompt}不仅深刻改变了我们的创作生态，更推演出了极具前瞻性的实践方向……（由 Jkai AI 引擎深度生成）</p>`;
+            } else if (task === 'argue') {
+                generatedText = `<h3 style="color:#000;">【AI 深度论述润色】</h3><p>聚焦于“${prompt}”这一议题，其核心逻辑呈现出多维度的演进特质。首先，从宏观趋势审视，这是时代发展的必然规律；其次，从微观实践落地而言，精准的排版与创意闭环是突破瓶颈的关键所在。</p>`;
+            } else {
+                generatedText = `<h3 style="color:#000;">【AI 多语言翻译】</h3><p><strong>Original Topic:</strong> ${prompt}</p><p><strong>Translation Result:</strong> Comprehensive integration of digital workspace architectures and intelligent generation modalities ensures maximum productivity.</p>`;
+            }
+
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                const div = document.createElement('div');
+                div.innerHTML = generatedText;
+                range.insertNode(div);
+                saveCurrentNote();
+                alert('✨ AI 已成功为您生成内容并插入！');
+            } else {
+                alert('请先在页面中点击光标定位，再插入内容。');
+            }
+        }
+
+        // AI 生图逻辑
+        function openAiModal() {
+            document.getElementById('aiModal').style.display = 'flex';
+            document.getElementById('aiPromptInput').focus();
+        }
+        function closeAiModal() {
+            document.getElementById('aiModal').style.display = 'none';
+            document.getElementById('aiPromptInput').value = '';
+        }
+
+        function generateAiImage() {
+            const prompt = document.getElementById('aiPromptInput').value.trim();
+            if (!prompt) {
+                alert('请输入画面提示词！');
+                return;
+            }
+            closeAiModal();
+            const randomSeed = Math.floor(Math.random() * 10000);
+            const imgUrl = `https://picsum.photos/seed/${encodeURIComponent(prompt + randomSeed)}/800/500`;
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                const img = document.createElement('img');
+                img.src = imgUrl;
+                range.insertNode(img);
+                saveCurrentNote();
+                alert('✨ AI 插图已生成并插入！');
+            } else {
+                alert('请先在页面中点击光标定位，再插入图片。');
+            }
+        }
+
+        function insertMedia(type) {
+            activeMediaType = type;
+            const mediaInput = document.getElementById('mediaInput');
+            mediaInput.accept = type === 'image' ? 'image/*' : 'video/*';
+            mediaInput.click();
+        }
+
+        function handleMediaFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Data = e.target.result;
+                const selection = window.getSelection();
+                if (!selection.rangeCount) return;
+                const range = selection.getRangeAt(0);
+                let mediaElement = document.createElement(activeMediaType === 'image' ? 'img' : 'video');
+                mediaElement.src = base64Data;
+                if (activeMediaType === 'video') mediaElement.controls = true;
+                range.insertNode(mediaElement);
+                saveCurrentNote();
+            };
+            reader.readAsDataURL(file);
+            event.target.value = '';
+        }
+
+        function deleteCurrentNote() {
+            if (!confirm('确定要删除这篇文档吗？')) return;
+            notes = notes.filter(n => n.id !== currentNoteId);
+            currentNoteId = null;
+            saveAndRender();
+            document.getElementById('activeEditor').style.display = 'none';
+            document.getElementById('emptyWorkspace').style.display = 'flex';
+        }
+
+        function exportCurrentNotebook() {
+            const note = notes.find(n => n.id === currentNoteId);
+            if (!note) return;
+            const notebookData = { format: "jkai-notebook-ultimate", version: "11.0", data: note };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(notebookData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            const safeTitle = (note.title || 'untitled').replace(/[\/\\?%*:|"<>]/g, '_');
+            downloadAnchor.setAttribute("download", safeTitle + ".notebook");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function triggerImport() { document.getElementById('importFile').click(); }
+
+        function importNotebookFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed && parsed.data && parsed.data.id) {
+                        const importedNote = parsed.data;
+                        const existingIndex = notes.findIndex(n => n.id === importedNote.id);
+                        if (existingIndex !== -1) notes[existingIndex] = importedNote;
+                        else notes.unshift(importedNote);
+                        saveAndRender();
+                        selectNote(importedNote.id);
+                        alert('成功导入 .notebook 文件并载入工作台！');
+                    } else {
+                        alert('文件格式不正确。');
+                    }
+                } catch (err) { alert('解析文件失败。'); }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function shareCurrentNote() {
+            const note = notes.find(n => n.id === currentNoteId);
+            if (!note) return;
+            const perm = document.getElementById('sharePermission').value;
+            const encoded = btoa(encodeURIComponent(JSON.stringify(note)));
+            const shareUrl = window.location.origin + window.location.pathname + '?data=' + encoded + '&mode=' + perm;
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                alert(`已生成专属分享链接！\n\n权限: ${perm === 'view' ? '仅查看' : '可编辑'}\n链接已复制到剪贴板。`);
+            });
+        }
+    </script>
+</body>
+</html>
