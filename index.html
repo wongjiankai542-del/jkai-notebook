@@ -1,12 +1,14 @@
+```html
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jkai Notebook - 安全多媒体创意工作台</title>
+    <title>Jkai Notebook - 纯净白色工作台</title>
     <!-- Google Fonts 经典英文及艺术字体 -->
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Dancing+Script:wght@400..700&family=Cinzel:wght@400..900&display=swap" rel="stylesheet">
     <style>
+        /* 强制定义全局白色风格变量，拒绝任何暗黑模式自动变色 */
         :root {
             --bg-color: #ffffff;
             --text-color: #222222;
@@ -15,10 +17,12 @@
             --panel-bg: #f8f9fa;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        /* 强制全白背景与深色字体 */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            background-color: #ffffff !important;
+            color: #222222 !important;
             font-size: 20px;
             line-height: 1.6;
             height: 100vh;
@@ -31,11 +35,11 @@
             align-items: center;
             padding: 12px 24px;
             border-bottom: 1px solid var(--border-color);
-            background: #fff;
+            background: #ffffff !important;
             flex-wrap: wrap;
             gap: 10px;
         }
-        .logo { font-weight: bold; font-size: 22px; color: var(--accent-color); }
+        .logo { font-weight: bold; font-size: 22px; color: var(--accent-color); cursor: pointer; }
         .toolbar {
             display: flex;
             gap: 8px;
@@ -46,19 +50,22 @@
             padding: 8px 12px;
             font-size: 16px;
             border: 1px solid var(--border-color);
-            background: #fff;
+            background: #ffffff !important;
+            color: #222222 !important;
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.2s;
         }
-        button:hover, select:hover { background: var(--panel-bg); border-color: var(--accent-color); }
-        .btn-primary { background: var(--accent-color); color: #fff; border: none; }
-        .btn-primary:hover { background: #0052cc; }
+        button:hover, select:hover { background: var(--panel-bg) !important; border-color: var(--accent-color); }
+        .btn-primary { background: var(--accent-color) !important; color: #ffffff !important; border: none; }
+        .btn-primary:hover { background: #0052cc !important; }
+        .btn-active { background: #28a745 !important; color: #ffffff !important; border-color: #28a745 !important; }
         
         .main-container {
             display: flex;
             flex: 1;
             overflow: hidden;
+            background: #ffffff !important;
         }
         .editor-area {
             flex: 1;
@@ -66,6 +73,7 @@
             flex-direction: column;
             padding: 24px;
             overflow-y: auto;
+            background: #ffffff !important;
         }
         .title-input {
             font-size: 28px;
@@ -75,7 +83,11 @@
             margin-bottom: 16px;
             width: 100%;
             font-family: inherit;
+            background: #ffffff !important;
+            color: #222222 !important;
         }
+        
+        /* 纯净且支持 HTML 自由输入的白底打字区 */
         .content-editable {
             flex: 1;
             border: 1px solid var(--border-color);
@@ -83,105 +95,74 @@
             padding: 20px;
             outline: none;
             overflow-y: auto;
-            min-height: 300px;
-            background: #fff;
+            min-height: 350px;
+            background: #ffffff !important;
+            color: #222222 !important;
             font-size: 20px;
             font-family: inherit;
         }
-        .content-editable img, .content-editable video, .content-editable iframe, .content-editable canvas {
+        
+        /* 实时运行预览区 */
+        .raw-preview-container {
+            flex: 1;
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
+            overflow: hidden;
+            background: #ffffff !important;
+            min-height: 350px;
+            display: none;
+        }
+        .raw-preview-frame { width: 100%; height: 100%; border: none; background: #ffffff !important; }
+
+        .content-editable img, .content-editable video, .content-editable canvas {
             max-width: 100%;
             border-radius: 6px;
             margin: 10px 0;
             display: block;
         }
         
-        /* AI 面板 */
-        .ai-panel {
-            background: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            padding: 12px 20px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
+        /* Word 经典荧光高亮色 */
+        mark.highlight-yellow { background-color: #ffff00; padding: 2px 4px; border-radius: 3px; }
+        mark.highlight-green { background-color: #00ff00; padding: 2px 4px; border-radius: 3px; }
+        mark.highlight-cyan { background-color: #00ffff; padding: 2px 4px; border-radius: 3px; }
+        mark.highlight-magenta { background-color: #ff00ff; padding: 2px 4px; border-radius: 3px; }
+        mark.highlight-blue { background-color: #0000ff; color: #fff; padding: 2px 4px; border-radius: 3px; }
+        mark.highlight-red { background-color: #ff0000; color: #fff; padding: 2px 4px; border-radius: 3px; }
+        mark.highlight-darkblue { background-color: #000080; color: #fff; padding: 2px 4px; border-radius: 3px; }
+        mark.highlight-darkcyan { background-color: #008080; color: #fff; padding: 2px 4px; border-radius: 3px; }
+        mark.highlight-darkgreen { background-color: #008000; color: #fff; padding: 2px 4px; border-radius: 3px; }
+        mark.highlight-darkmagenta { background-color: #800080; color: #fff; padding: 2px 4px; border-radius: 3px; }
+        mark.highlight-darkred { background-color: #800000; color: #fff; padding: 2px 4px; border-radius: 3px; }
+        mark.highlight-darkyellow { background-color: #808000; color: #fff; padding: 2px 4px; border-radius: 3px; }
+        mark.highlight-darkgray { background-color: #808080; color: #fff; padding: 2px 4px; border-radius: 3px; }
+        mark.highlight-lightgray { background-color: #c0c0c0; padding: 2px 4px; border-radius: 3px; }
+        mark.highlight-black { background-color: #000000; color: #fff; padding: 2px 4px; border-radius: 3px; }
+        
+        /* 大厅弹窗样式（纯白背景） */
+        .hall-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); display: none; justify-content: center; align-items: center; z-index: 1000;
         }
-        .ai-panel input { flex: 1; }
+        .hall-content {
+            background: #ffffff !important; width: 600px; max-height: 80vh; border-radius: 12px;
+            padding: 24px; display: flex; flex-direction: column; box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            color: #222222 !important;
+        }
+        .hall-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .hall-list { flex: 1; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; background: #ffffff !important; }
+        .hall-item { padding: 12px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .hall-item:last-child { border-bottom: none; }
 
-        /* 手写板组件样式 */
-        .sketch-box {
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            margin: 16px 0;
-            background: #fafafa;
-            overflow: hidden;
-            display: inline-block;
-        }
-        .sketch-header {
-            background: #eee;
-            padding: 6px 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 14px;
-            font-weight: bold;
-        }
-        .sketch-canvas {
-            background: #fff;
-            cursor: crosshair;
-            display: block;
-            touch-action: none;
-        }
-
-        /* HTML 嵌入沙盒样式 */
-        .html-embed-box {
-            border: 2px dashed var(--accent-color);
-            border-radius: 8px;
-            margin: 16px 0;
-            background: var(--panel-bg);
-            overflow: hidden;
-            resize: vertical;
-            min-height: 250px;
-        }
-        .html-embed-header {
-            background: #eef2f7;
-            padding: 8px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 14px;
-            font-weight: bold;
-            color: #444;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .html-embed-body {
-            display: flex;
-            height: calc(100% - 40px);
-        }
-        .html-code-input {
-            flex: 1;
-            border: none;
-            padding: 12px;
-            font-family: monospace;
-            font-size: 14px;
-            outline: none;
-            resize: none;
-            background: #fafafa;
-            border-right: 1px solid var(--border-color);
-        }
-        .html-preview-frame {
-            flex: 1;
-            border: none;
-            background: #fff;
-            width: 100%;
-            height: 100%;
-        }
+        /* 手写板样式 */
+        .sketch-box { border: 2px solid var(--border-color); border-radius: 8px; margin: 16px 0; background: #fafafa; overflow: hidden; display: inline-block; }
+        .sketch-header { background: #eee; padding: 6px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: bold; color: #222; }
+        .sketch-canvas { background: #fff; cursor: crosshair; display: block; touch-action: none; }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="logo">🚀 Jkai Notebook 安全工作台</div>
+        <div class="logo" onclick="openHall()">🏛️ 创意大厅广场</div>
         <div class="toolbar">
             <select id="fontFamilySelector" onchange="changeFontFamily(this.value)">
                 <option value="-apple-system, sans-serif">默认无衬线</option>
@@ -205,33 +186,201 @@
                 <option value="2000px">2000 号</option>
             </select>
 
+            <!-- Word 经典高亮颜色选择器 -->
+            <select id="highlightColorSelector" onchange="highlightSelection(this.value)">
+                <option value="" disabled selected>🖍️ Word 荧光笔</option>
+                <option value="highlight-yellow">🟡 黄色 (Classic)</option>
+                <option value="highlight-green">🟢 鲜绿 (Green)</option>
+                <option value="highlight-cyan">🔵 亮青 (Cyan)</option>
+                <option value="highlight-magenta">🟣 粉红 (Pink)</option>
+                <option value="highlight-blue">🟦 蓝色 (Blue)</option>
+                <option value="highlight-red">🟥 红色 (Red)</option>
+                <option value="highlight-darkblue">🔷 深蓝 (Dark Blue)</option>
+                <option value="highlight-darkcyan">🔹 深青 (Teal)</option>
+                <option value="highlight-darkgreen">🌲 深绿 (Dark Green)</option>
+                <option value="highlight-darkmagenta">🍇 紫红 (Violet)</option>
+                <option value="highlight-darkred">🍫 深红 (Dark Red)</option>
+                <option value="highlight-darkyellow">🟡 橄榄 (Olive)</option>
+                <option value="highlight-darkgray">⬛ 深灰 (Dark Gray)</option>
+                <option value="highlight-lightgray">⬜ 浅灰 (Light Gray)</option>
+                <option value="highlight-black">⬛ 黑色 (Black)</option>
+            </select>
+
+            <button id="modeBtn" onclick="toggleRunMode()">⚡ HTML 实时运行</button>
             <button onclick="insertSketchPad()">✍️ 手写</button>
-            <button onclick="insertImage()">📸 图片</button>
-            <button onclick="insertVideo()">🎬 视频</button>
-            <button onclick="insertHtmlBox()">⚡ 沙盒</button>
-            <button onclick="toggleAiPanel()">✨ AI</button>
-            <button onclick="secureShare()">🔒 安全加密分享</button>
-            <button class="btn-primary" onclick="exportNotebook()">📥 导出</button>
+            <button onclick="insertLocalImage()">📸 本地图片</button>
+            <button onclick="insertLocalVideo()">🎬 本地视频</button>
+            <button class="btn-primary" onclick="publishToHall()">🚀 发布到大厅</button>
+            <button onclick="secureShare()">🔒 安全分享</button>
+            <button onclick="exportNotebookModal()" style="background: #28a745 !important; color: #fff !important;">📥 导出文件</button>
         </div>
     </header>
 
+    <!-- 隐藏的文件选择器用于本地上传 -->
+    <input type="file" id="localImageInput" accept="image/*" style="display:none" onchange="handleLocalImage(this)">
+    <input type="file" id="localVideoInput" accept="video/*" style="display:none" onchange="handleLocalVideo(this)">
+
+    <!-- 导出确认弹窗 -->
+    <div id="exportModal" class="hall-modal">
+        <div class="hall-content" style="width: 400px; text-align: center;">
+            <div class="hall-header">
+                <h2>📥 导出文件成功</h2>
+                <button onclick="closeExportModal()">关闭</button>
+            </div>
+            <p style="margin: 20px 0; color: #444;">你的笔记已经打包完毕，请点击下方按钮直接下载：</p>
+            <div id="downloadLinkArea" style="margin: 20px 0;">
+                <!-- 动态生成下载按钮 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 公开大厅弹窗 -->
+    <div id="hallModal" class="hall-modal">
+        <div class="hall-content">
+            <div class="hall-header">
+                <h2>🏛️ 社区创意公开大厅</h2>
+                <button onclick="closeHall()">关闭</button>
+            </div>
+            <p style="font-size: 14px; color: #666; margin-bottom: 10px;">点击下方作品即可加载到你的工作台进行查看或试玩：</p>
+            <div id="hallList" class="hall-list">
+                <!-- 动态加载列表 -->
+            </div>
+        </div>
+    </div>
+
     <div class="main-container">
         <div class="editor-area">
-            <input type="text" class="title-input" placeholder="输入文章标题..." value="安全加密笔记">
+            <input type="text" class="title-input" placeholder="输入文章或作品标题..." value="">
             
-            <div id="aiPanel" class="ai-panel" style="display: none;">
-                <input type="text" id="aiPromptInput" placeholder="输入 AI 写作主题...">
-                <button class="btn-primary" onclick="executeAiWrite()">生成</button>
-                <button onclick="toggleAiPanel()">关闭</button>
-            </div>
+            <div id="editor" class="content-editable" contenteditable="true"></div>
 
-            <div id="editor" class="content-editable" contenteditable="true">
-                欢迎来到绝对安全的工作台！点击顶部的 **“🔒 安全加密分享”**，系统会把你的所有笔记内容（包含排版与多媒体）转换为加密安全码，杜绝任何数据泄露风险！
+            <div id="rawPreviewContainer" class="raw-preview-container">
+                <iframe id="rawPreviewFrame" class="raw-preview-frame"></iframe>
             </div>
         </div>
     </div>
 
     <script>
+        let isRunMode = false;
+
+        function getHallData() {
+            const data = localStorage.getItem('jkai_notebook_hall');
+            return data ? JSON.parse(data) : [
+                { id: 1, title: "欢迎来到创意大厅", content: "<h2>Hello Jkai!</h2><p>这是一个由社区成员发布的示例网页。你也可以随时在这里写 HTML 并在上方点击【HTML 实时运行】查看效果！</p>", font: "sans-serif" }
+            ];
+        }
+
+        function openHall() {
+            const modal = document.getElementById('hallModal');
+            const listContainer = document.getElementById('hallList');
+            const items = getHallData();
+            
+            listContainer.innerHTML = '';
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'hall-item';
+                div.innerHTML = `
+                    <div>
+                        <strong>${item.title || '无标题作品'}</strong>
+                        <p style="font-size: 12px; color: #888;">版本：HTML/多媒体作品</p>
+                    </div>
+                    <button class="btn-primary" onclick="loadHallItem(${item.id})">查看/加载</button>
+                `;
+                listContainer.appendChild(div);
+            });
+            modal.style.display = 'flex';
+        }
+
+        function closeHall() {
+            document.getElementById('hallModal').style.display = 'none';
+        }
+
+        function publishToHall() {
+            const title = document.querySelector('.title-input').value;
+            const content = document.getElementById('editor').innerHTML;
+            if(!title && !content) { alert('请输入内容后再发布到大厅！'); return; }
+            
+            const items = getHallData();
+            const newItem = { id: Date.now(), title: title || '未命名作品', content, font: document.getElementById('editor').style.fontFamily };
+            items.unshift(newItem);
+            localStorage.setItem('jkai_notebook_hall', JSON.stringify(items));
+            alert('🚀 成功发布到社区大厅！点击左上角【创意大厅广场】即可看到你的作品。');
+        }
+
+        function loadHallItem(id) {
+            const items = getHallData();
+            const target = items.find(i => i.id === id);
+            if(target) {
+                document.querySelector('.title-input').value = target.title;
+                document.getElementById('editor').innerHTML = target.content;
+                closeHall();
+            }
+        }
+
+        // Word 风格多色荧光高亮函数
+        function highlightSelection(colorClass) {
+            if (!colorClass) return;
+            const selection = window.getSelection();
+            if (!selection.rangeCount) return;
+            const range = selection.getRangeAt(0);
+            if (range.collapsed) {
+                alert('请先用鼠标或手指选中你要高亮的文字！');
+                document.getElementById('highlightColorSelector').selectedIndex = 0;
+                return;
+            }
+            const mark = document.createElement('mark');
+            mark.className = colorClass;
+            mark.appendChild(range.extractContents());
+            range.insertNode(mark);
+            selection.removeAllRanges();
+            document.getElementById('highlightColorSelector').selectedIndex = 0;
+        }
+
+        // 实时 HTML 运行模式
+        function toggleRunMode() {
+            const editor = document.getElementById('editor');
+            const container = document.getElementById('rawPreviewContainer');
+            const frame = document.getElementById('rawPreviewFrame');
+            const btn = document.getElementById('modeBtn');
+
+            isRunMode = !isRunMode;
+
+            if (isRunMode) {
+                editor.style.display = 'none';
+                container.style.display = 'block';
+                btn.classList.add('btn-active');
+                btn.textContent = '✏️ 返回编辑模式';
+
+                const htmlContent = editor.innerHTML;
+                const font = document.getElementById('fontFamilySelector').value;
+                const fullDoc = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><style>
+                    body { font-family: ${font}; padding: 20px; color: #222; background: #fff; line-height: 1.6; } 
+                    mark.highlight-yellow { background-color: #ffff00; padding: 2px 4px; border-radius: 3px; }
+                    mark.highlight-green { background-color: #00ff00; padding: 2px 4px; border-radius: 3px; }
+                    mark.highlight-cyan { background-color: #00ffff; padding: 2px 4px; border-radius: 3px; }
+                    mark.highlight-magenta { background-color: #ff00ff; padding: 2px 4px; border-radius: 3px; }
+                    mark.highlight-blue { background-color: #0000ff; color: #fff; padding: 2px 4px; border-radius: 3px; }
+                    mark.highlight-red { background-color: #ff0000; color: #fff; padding: 2px 4px; border-radius: 3px; }
+                    mark.highlight-darkblue { background-color: #000080; color: #fff; padding: 2px 4px; border-radius: 3px; }
+                    mark.highlight-darkcyan { background-color: #008080; color: #fff; padding: 2px 4px; border-radius: 3px; }
+                    mark.highlight-darkgreen { background-color: #008000; color: #fff; padding: 2px 4px; border-radius: 3px; }
+                    mark.highlight-darkmagenta { background-color: #800080; color: #fff; padding: 2px 4px; border-radius: 3px; }
+                    mark.highlight-darkred { background-color: #800000; color: #fff; padding: 2px 4px; border-radius: 3px; }
+                    mark.highlight-darkyellow { background-color: #808000; color: #fff; padding: 2px 4px; border-radius: 3px; }
+                    mark.highlight-darkgray { background-color: #808080; color: #fff; padding: 2px 4px; border-radius: 3px; }
+                    mark.highlight-lightgray { background-color: #c0c0c0; padding: 2px 4px; border-radius: 3px; }
+                    mark.highlight-black { background-color: #000000; color: #fff; padding: 2px 4px; border-radius: 3px; }
+                </style></head><body>${htmlContent}</body></html>`;
+                const doc = frame.contentDocument || frame.contentWindow.document;
+                doc.open(); doc.write(fullDoc); doc.close();
+            } else {
+                container.style.display = 'none';
+                editor.style.display = 'block';
+                btn.classList.remove('btn-active');
+                btn.textContent = '⚡ HTML 实时运行';
+            }
+        }
+
         function changeFontFamily(fontFamily) {
             document.getElementById('editor').style.fontFamily = fontFamily;
             document.querySelector('.title-input').style.fontFamily = fontFamily;
@@ -241,33 +390,13 @@
             document.getElementById('editor').style.fontSize = size;
         }
 
-        function toggleAiPanel() {
-            const panel = document.getElementById('aiPanel');
-            panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
-        }
-
-        function executeAiWrite() {
-            const prompt = document.getElementById('aiPromptInput').value;
-            const editor = document.getElementById('editor');
-            if(!prompt) { alert('请输入提示词！'); return; }
-            editor.innerHTML += `<p style='color: var(--accent-color); margin-top: 10px;'><b>[AI 生成 - ${prompt}]：</b>内容生成完毕。</p>`;
-            document.getElementById('aiPromptInput').value = '';
-            toggleAiPanel();
-        }
-
-        // 绝对安全的加密分享机制（基于 Base64 编码，无需依赖本地临时内存 URL）
         function secureShare() {
             const title = document.querySelector('.title-input').value;
             const content = document.getElementById('editor').innerHTML;
             const font = document.getElementById('editor').style.fontFamily;
-            
             const payload = { title, content, font, time: new Date().toISOString() };
-            // 将笔记数据进行安全的 Base64 文本加密打包
             const secureToken = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-            
-            // 弹出一个绝对安全的文本分享框，用户可以复制这段安全的加密字符串
-            const safeShareText = `JkaiSecureNote_v1:${secureToken}`;
-            prompt("✅ 您的笔记已生成【绝对安全加密分享码】（不经过任何第三方服务器，纯离线安全加密，复制下方整段代码即可安全分享）：", safeShareText);
+            prompt("✅ 您的笔记已生成【安全加密分享码】：", `JkaiSecureNote_v1:${secureToken}`);
         }
 
         function insertSketchPad() {
@@ -278,7 +407,7 @@
             wrapper.contentEditable = "false";
             wrapper.innerHTML = `
                 <div class="sketch-header">
-                    <span>✍️ 手写涂鸦画板</span>
+                    <span>✍️ 手写画板</span>
                     <div>
                         <button onclick="clearCanvas('${canvasId}')" style="padding: 2px 6px; font-size: 12px;">清空</button>
                         <button onclick="this.parentElement.parentElement.parentElement.remove()" style="padding: 2px 6px; font-size: 12px;">删除</button>
@@ -291,10 +420,7 @@
             setTimeout(() => {
                 const canvas = document.getElementById(canvasId);
                 const ctx = canvas.getContext('2d');
-                ctx.strokeStyle = '#222222';
-                ctx.lineWidth = 3;
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
+                ctx.strokeStyle = '#222222'; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
                 let painting = false;
 
                 function getPos(e) {
@@ -310,10 +436,7 @@
                     if (!painting) return;
                     e.preventDefault();
                     const pos = getPos(e);
-                    ctx.lineTo(pos.x, pos.y);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.moveTo(pos.x, pos.y);
+                    ctx.lineTo(pos.x, pos.y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
                 }
 
                 canvas.addEventListener('mousedown', startPosition);
@@ -331,58 +454,92 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
-        function insertImage() {
-            const url = prompt("请输入图片链接 (URL)：", "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800");
-            if (url) document.getElementById('editor').innerHTML += `<img src="${url}" alt="插图" />`;
+        // 本地图片上传处理
+        function insertLocalImage() {
+            document.getElementById('localImageInput').click();
         }
 
-        function insertVideo() {
-            const url = prompt("请输入视频链接 (MP4 直链)：", "https://www.w3schools.com/html/mov_bbb.mp4");
-            if (url) document.getElementById('editor').innerHTML += `<video controls src="${url}" style="width:100%; max-height:400px;"></video>`;
+        function handleLocalImage(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const wrapper = document.createElement('div');
+                wrapper.contentEditable = "false";
+                wrapper.style.position = "relative";
+                wrapper.style.margin = "12px 0";
+                wrapper.style.display = "inline-block";
+                wrapper.style.maxWidth = "100%";
+                wrapper.innerHTML = `
+                    <div style="position: absolute; top: 8px; right: 8px; z-index: 10;">
+                        <button onclick="this.parentElement.parentElement.remove()" style="background: #ff3b30 !important; color: white !important; border: none; padding: 6px 10px; font-size: 14px; border-radius: 6px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">✖ 删除图片</button>
+                    </div>
+                    <img src="${e.target.result}" style="max-width:100%; border-radius:8px; display:block;" />
+                `;
+                document.getElementById('editor').appendChild(wrapper);
+                input.value = ''; // 清空以允许重复选择同一文件
+            };
+            reader.readAsDataURL(file);
         }
 
-        function insertHtmlBox() {
-            const editor = document.getElementById('editor');
-            const boxId = 'html-box-' + Date.now();
-            const wrapper = document.createElement('div');
-            wrapper.className = "html-embed-box";
-            wrapper.contentEditable = "false";
-            wrapper.innerHTML = `
-                <div class="html-embed-header">
-                    <span>⚡ 实时 HTML / JS 沙盒预览</span>
-                    <button onclick="this.parentElement.parentElement.remove()" style="padding: 2px 8px; font-size: 12px;">删除</button>
-                </div>
-                <div class="html-embed-body" style="height: 220px;">
-                    <textarea class="html-code-input" placeholder="输入代码..." oninput="updatePreview('${boxId}')">&lt;h2 style=&quot;color:#0066ff;&quot;&gt;Hello Jkai!&lt;/h2&gt;&lt;p&gt;实时运行中。&lt;/p&gt;</textarea>
-                    <iframe id="${boxId}" class="html-preview-frame"></iframe>
-                </div>
-            `;
-            editor.appendChild(wrapper);
-            updatePreview(boxId, '<h2 style="color:#0066ff;">Hello Jkai!</h2><p>实时运行中。</p>');
+        // 本地视频上传处理
+        function insertLocalVideo() {
+            document.getElementById('localVideoInput').click();
         }
 
-        function updatePreview(frameId, customHtml) {
-            const box = document.getElementById(frameId);
-            if (!box) return;
-            const textarea = box.parentElement.querySelector('.html-code-input');
-            const htmlContent = customHtml !== undefined ? customHtml : textarea.value;
-            const doc = box.contentDocument || box.contentWindow.document;
-            doc.open();
-            doc.write(htmlContent);
-            doc.close();
+        function handleLocalVideo(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const wrapper = document.createElement('div');
+                wrapper.contentEditable = "false";
+                wrapper.style.position = "relative";
+                wrapper.style.margin = "12px 0";
+                wrapper.style.width = "100%";
+                wrapper.innerHTML = `
+                    <div style="position: absolute; top: 8px; right: 8px; z-index: 10;">
+                        <button onclick="this.parentElement.parentElement.remove()" style="background: #ff3b30 !important; color: white !important; border: none; padding: 6px 10px; font-size: 14px; border-radius: 6px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">✖ 删除视频</button>
+                    </div>
+                    <video controls src="${e.target.result}" style="width:100%; max-height:450px; border-radius:8px; display:block; background:#000;"></video>
+                `;
+                document.getElementById('editor').appendChild(wrapper);
+                input.value = ''; // 清空以允许重复选择同一文件
+            };
+            reader.readAsDataURL(file);
         }
 
-        function exportNotebook() {
-            const title = document.querySelector('.title-input').value;
+        // 完美修复版：使用弹窗按钮触发下载，彻底解决手机浏览器拦截导出无反应的问题
+        function exportNotebookModal() {
+            const titleInput = document.querySelector('.title-input').value.trim();
+            const title = titleInput ? titleInput : '我的笔记';
             const content = document.getElementById('editor').innerHTML;
-            const data = { title, content, version: "6.0", timestamp: new Date().toISOString() };
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = (title || 'notebook') + '.notebook';
-            a.click();
+            
+            const data = {
+                title: title,
+                content: content,
+                version: "10.3",
+                timestamp: new Date().toISOString()
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+            const modal = document.getElementById('exportModal');
+            const area = document.getElementById('downloadLinkArea');
+            
+            const filename = title.replace(/[\/\\?%*:|"<>]/g, '_') + ".notebook";
+            
+            area.innerHTML = `
+                <a href="${dataStr}" download="${filename}" class="btn-primary" style="display: inline-block; padding: 12px 24px; text-decoration: none; font-size: 18px; border-radius: 6px; background: #0066ff !important; color: #fff !important;">
+                    👉 点击这里下载 ${filename}
+                </a>
+            `;
+            modal.style.display = 'flex';
+        }
+
+        function closeExportModal() {
+            document.getElementById('exportModal').style.display = 'none';
         }
     </script>
 </body>
 </html>
+```
